@@ -1,0 +1,151 @@
+﻿<!DOCTYPE html>
+<html>
+    <body>
+        <h1> Enter the required details to know which products might be reordered </h1>
+        <h3> (For multiple orders, please enter comma seperated details)</h3>
+        <h3> (For days_since_prior_order, please enter values between 0 to 30 or  values in [0.0,1.0,..30.0]. Note that only decimal allowed is x.0 for x in 0 to 30)</h3>
+        <form action="/predict" id="val_form" method="POST">
+            <label for="order_id">order_id:</label><br>
+            <input type="text" id="order_id" name="order_id"><br>
+            <label for="user_id">user_id:</label><br>
+            <input type="text" id="user_id" name="user_id"><br>
+            <label for="order_number">order_number:</label><br>
+            <input type="text" id="order_number" name="order_number"><br>
+            <label for="order_dow">order_dow:</label><br>
+            <input type="text" id="order_dow" name="order_dow"><br>
+            <label for="order_hour_of_day">order_hour_of_day:</label><br>
+            <input type="text" id="order_hour_of_day" name="order_hour_of_day"><br>
+            <label for="days_since_prior_order">days_since_prior_order:</label><br>
+            <input type="text" id="days_since_prior_order" name="days_since_prior_order"><br>
+            <input type="button" value="submit" onclick="validate()">
+          </form>
+          <br>
+          <br>
+          <div id="error">
+
+          </div>
+          <script type="text/javascript">
+                // https://stackoverflow.com/questions/10834796/validate-that-a-string-is-a-positive-integer
+               function check_for_order_id(order_id){
+                    return /^[1-9]\d*$/.test(order_id);
+               }
+                function check_for_user_id(user_id){
+                    return /^[1-9]\d*$/.test(user_id);
+               }
+               function check_for_order_number(order_number){
+                    return /^[1-9]\d*$/.test(order_number);
+               }
+                function check_for_order_dow(order_dow){
+                    return ((order_dow=='0')||(order_dow=='1')||(order_dow=='2')||(order_dow=='3')||(order_dow=='4')||(order_dow=='5')||(order_dow=='6'));
+               }
+               function check_for_order_hod(order_hod){
+                    if (/^[1-9]\d*$/.test(order_hod)){
+                        return ((Number(order_hod)>=0)&& (Number(order_hod)<=23));
+                    }
+                    return false;
+               }
+               function check_for_dsp(dsp){
+                    if (/^[1-9]\d*(\.0)?$/.test(dsp)){
+                        return ((Number(dsp)>=0)&& (Number(dsp)<=30));
+                    }
+                    return false;
+               }
+
+              function number_of_subparts(str){
+                if (str==""){return 0;}
+                return str.split(",").length;
+              }
+              function validate(){
+
+                     var order_ids = document.getElementById('order_id').value;
+                     var user_ids = document.getElementById('user_id').value;
+                     var order_numbers = document.getElementById('order_number').value;
+                     var order_dows = document.getElementById('order_dow').value;
+                     var order_hods = document.getElementById('order_hour_of_day').value;
+                     var dsps = document.getElementById('days_since_prior_order').value;
+                     var len=number_of_subparts(order_ids);
+                     var user_idslen=number_of_subparts(user_ids);
+                     var order_numberslen=number_of_subparts(order_numbers);
+                     var order_dowslen=number_of_subparts(order_dows);
+                     var order_hodslen=number_of_subparts(order_hods);
+                     var dspslen=number_of_subparts(dsps);
+                    
+                
+                     if (!((user_idslen==len)&&(order_numberslen==len)&&(order_dowslen==len)&&(order_hodslen==len)&&(dspslen==len))){
+                        document.getElementById("error").innerHTML = "enter same number of comma seperated values for each field";
+                            return false; }
+                     
+                     order_id_vals=true;
+                     order_ids.split(",").forEach(function(order_id){
+                        console.log('order_id'+check_for_order_id(order_id))
+                        if (check_for_order_id(order_id)==false){
+                            document.getElementById("error").innerHTML = "Order_id must be a positive integer";
+                            order_id_vals=(order_id_vals&& false) }
+                     })
+                     if (order_id_vals==false){return false;}
+
+                     user_id_vals=true;
+                     user_ids.split(",").forEach(function(user_id){
+                        if (check_for_user_id(user_id)==false){
+                            document.getElementById("error").innerHTML = "user_id must be a positive integer";
+                            user_id_vals=user_id_vals&& false;
+                            return; }
+                         if (Number(user_id)<1 || Number(user_id)>206209){
+                            document.getElementById("error").innerHTML = "sry! we have information of previous orders of users only from 1 to 206209 user_ids(fo rest reorders will be None). Please enter values between same.";
+                            user_id_vals=user_id_vals&& false;
+                            return;
+                        }})
+                        if (user_id_vals==false){return false;}
+                     
+                     order_number_vals=true;
+                     order_numbers.split(",").forEach(function(order_number){
+                        if (check_for_order_number(order_number)==false){
+                            document.getElementById("error").innerHTML = "order_number must be a positive integer";
+                            order_number_vals=order_number_vals&& false;
+                            return;
+                        }
+                     })
+                     if (order_number_vals==false){return false;}
+
+
+                     order_dow_vals=true;
+                     order_dows.split(",").forEach(function(order_dow){
+                        if (check_for_order_dow(order_dow)==false){
+                            document.getElementById("error").innerHTML = "order_dow must be between 0 to 6";
+                            order_dow_vals=order_dow_vals&&false;
+                            return;
+                        }
+                     })
+                     if (order_dow_vals==false){return false;}
+
+
+                     order_hod_vals=true;
+                     order_hods.split(",").forEach(function(order_hod){
+                        if (check_for_order_hod(order_hod)==false){
+                            document.getElementById("error").innerHTML = "order_hour_of_day must be between 0 to 23";
+                            order_hod_vals=order_hod_vals&& false;
+                            return;
+                        }
+                     })
+                     if (order_hod_vals==false){return false;}
+
+                     dsp_vals=true;
+                     dsps.split(",").forEach(function(dsp){
+                        if (check_for_dsp(dsp)==false){
+                            document.getElementById("error").innerHTML = "days_since_prior_order must be between 0 to 30";
+                            dsp_vals=dsp_vals&&false;
+                            return;
+                        }
+                     })
+                     if (dsp_vals==false){return false;}
+                     console.log('alltrue');
+                    
+                     
+                    document.getElementById('val_form').submit();
+                    document.getElementById("error").innerHTML = "Result loading .....";
+                     
+
+                }
+          </script>
+    </body>
+</html>
