@@ -1,0 +1,42 @@
+
+<!doctype html>
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+table, th, td {
+  border: 1px solid black;
+}
+</style>
+</head>
+  <div>
+  	The below products might be reordered for each order_id:
+  	{% set inp = result.json %}
+  	{% set order_ids= inp['order_id']%}
+  	{% set product_ids= inp['product_id']%}
+  	{% set product_names= inp['product_name']%}
+  	{% set len= order_ids|length%}
+  	<table>
+  	<tr><th>order_id</th><th>product_id</th><th>product_names</th></tr>
+  	{%for i in range(0, len)%} 
+  
+    	<tr><td>{{order_ids[i]}}</td>
+    		<td>
+    			{%for j in product_ids[i].split(" ")%}
+    				{{j}}<br>
+    			{%endfor%}
+
+    		</td>
+    		<td>
+    			{%for j in product_names[i].split("*")%}
+    				{{j}}<br>
+    			{%endfor%}
+    		
+    	</td>
+    	</tr> 
+	{%endfor%} 
+  	</table>
+ 	
+    
+  </div>
+  </html>
